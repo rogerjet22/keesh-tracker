@@ -1,7 +1,14 @@
 import React from 'react';
 
+function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_HOST) return process.env.NEXT_PUBLIC_HOST.replace(/\/$/, '');
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return `http://localhost:${process.env.PORT || 3000}`;
+}
+
 async function getKit(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_HOST || ''}/api/kits/${id}`, { cache: 'no-store' });
+  const base = getBaseUrl();
+  const res = await fetch(`${base}/api/kits/${id}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to load');
   return res.json();
 }
