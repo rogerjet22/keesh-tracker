@@ -1,16 +1,9 @@
 import React from 'react';
-
-function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_HOST) return process.env.NEXT_PUBLIC_HOST.replace(/\/$/, '');
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import db from '@/lib/db';
 
 async function getKits() {
-  const base = getBaseUrl();
-  const res = await fetch(`${base}/api/kits`, { cache: 'no-store' });
-  if (!res.ok) return [];
-  return res.json();
+  const res = await db.query('SELECT * FROM kits ORDER BY created_at DESC');
+  return res.rows || [];
 }
 
 export default async function Page() {

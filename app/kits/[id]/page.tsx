@@ -1,16 +1,15 @@
 import React from 'react';
-
-function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_HOST) return process.env.NEXT_PUBLIC_HOST.replace(/\/$/, '');
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  return `http://localhost:${process.env.PORT || 3000}`;
-}
+import db from '@/lib/db';
 
 async function getKit(id: string) {
-  const base = getBaseUrl();
-  const res = await fetch(`${base}/api/kits/${id}`, { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to load');
-  return res.json();
+  const kitRes = await db.query('SELECT * FROM kits WHERE id = $1 LIMIT 1', [id]);
+  if (!kitRes.rows.length) throw new Error('Not found');
+  const kit = kitRes.rows[0];
+
+  const outRes = await db.query('SELECT * FROM outbound_shipments WHERE kit_id = $1 ORDER BY created_at DESC LIMIT 1', [id]);
+  const retRes = await db.query('SELECT * FROM return_shipments WHERE kit_id = $1 ORDER BY created_at DESC LIMIT 1', [id]);
+
+  return { kit, outbound: outRes.rows[0] || null, return: retRes.rows[0] || null };
 }
 
 export default async function KitPage({ params }: { params: { id: string } }) {
